@@ -1,0 +1,13 @@
+#Ignore the .DS_Store hidden file
+#.DS_Store
+
+#Ignore all files...
+/*
+
+#...Except the following:
+!TensorFlow/
+!PyTorch/
+!.gitignore
+!*.py
+!*.md
+!LICENCE
