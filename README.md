@@ -1,6 +1,6 @@
 # ForecastNet
 
-TensorFlow implementation of ForecastNet described in the paper entitled
+Implementation of ForecastNet described in the paper entitled
 "ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman.
 
