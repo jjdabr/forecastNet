@@ -17,8 +17,8 @@ def evaluate(fcstnet, test_x, test_y, return_lists=False):
     """
     Calculate various error metrics on a test dataset
     :param fcstnet: A forecastNet object defined by the class in forecastNet.py
-    :param test_x: Input test data in the form [encoder_seq_length, batch_size, input_dim]
-    :param test_y: target data in the form [encoder_seq_length, batch_size, input_dim]
+    :param test_x: Input test data in the form [encoder_seq_length, n_batches, input_dim]
+    :param test_y: target data in the form [encoder_seq_length, n_batches, input_dim]
     :return: mase: Mean absolute scaled error
     :return: smape: Symmetric absolute percentage error
     :return: nrmse: Normalised root mean squared error
