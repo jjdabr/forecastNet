@@ -21,12 +21,17 @@ if plot_train_progress:
 
 def train(fcstnet, train_x, train_y, validation_x=None, validation_y=None, restore_session=False):
     """
-    Train the ForecastNet model on a provided dataset
-    :param fcstnet: A forecastNet object defined by the class in forecastNet.py
-    :param train_x: Input training data in the form [input_seq_length, batch_size, input_dim]
-    :param train_y: Target training data in the form [output_seq_length, batch_size, output_dim]
-    :param validation_x: Optional input validation data in the form [input_seq_length, batch_size, input_dim]
-    :param validation_y: Optional target validation data in the form [output_seq_length, batch_size, output_dim]
+    Train the ForecastNet model on a provided dataset. 
+    In the following variable descriptions, the input_seq_length is the length of the input sequence 
+    (2*seasonal_period in the paper) and output_seq_length is the number of steps-ahead to forecast 
+    (seasonal_period in the paper). The n_batches is the total number batches in the dataset. The 
+    input_dim and output_dim are the dimensions of the input sequence and output sequence respectively
+    (in the paper univariate sequences were used where input_dim=output_dim=1).
+    :param fcstnet: A forecastNet object defined by the class in forecastNet.py. 
+    :param train_x: Input training data in the form [input_seq_length, n_batches, input_dim]
+    :param train_y: Target training data in the form [output_seq_length, n_batches, output_dim]
+    :param validation_x: Optional input validation data in the form [input_seq_length, n_batches, input_dim]
+    :param validation_y: Optional target validation data in the form [output_seq_length, n_batches, output_dim]
     :param restore_session: If true, restore parameters and keep training, else train from scratch
     :return: training_costs: a list of training costs over the set of epochs
     :return: validation_costs: a list of validation costs over the set of epochs
