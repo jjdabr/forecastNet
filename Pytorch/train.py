@@ -21,12 +21,12 @@ if plot_train_progress:
 
 def train(fcstnet, train_x, train_y, validation_x=None, validation_y=None, restore_session=False):
     """
-    Train the ForecastNet model on a provided dataset
+    Train the ForecastNet model on a provided dataset, where input_seq_length & output_seq_length represents the length of sequence input to Model
     :param fcstnet: A forecastNet object defined by the class in forecastNet.py
-    :param train_x: Input training data in the form [input_seq_length, batch_size, input_dim]
-    :param train_y: Target training data in the form [output_seq_length, batch_size, output_dim]
-    :param validation_x: Optional input validation data in the form [input_seq_length, batch_size, input_dim]
-    :param validation_y: Optional target validation data in the form [output_seq_length, batch_size, output_dim]
+    :param train_x: Input training data in the form [input_seq_length, total_seq_length, input_dim]
+    :param train_y: Target training data in the form [output_seq_length, total_seq_length, output_dim]
+    :param validation_x: Optional input validation data in the form [input_seq_length, total_seq_length, input_dim]
+    :param validation_y: Optional target validation data in the form [output_seq_length, total_seq_length, output_dim]
     :param restore_session: If true, restore parameters and keep training, else train from scratch
     :return: training_costs: a list of training costs over the set of epochs
     :return: validation_costs: a list of validation costs over the set of epochs
