@@ -14,9 +14,9 @@ import torch
 def format_input(input):
     """
     Format the input array by combining the time and input dimension of the input for feeding into ForecastNet.
-    That is: reshape from [in_seq_length, batch_size, input_dim] to [batch_size, in_seq_length * input_dim]
-    :param input: Input tensor with shape [in_seq_length, batch_size, input_dim]
-    :return: input tensor reshaped to [batch_size, in_seq_length * input_dim]
+    That is: reshape from [in_seq_length, n_batches, input_dim] to [n_batches, in_seq_length * input_dim]
+    :param input: Input tensor with shape [in_seq_length, n_batches, input_dim]
+    :return: input tensor reshaped to [n_batches, in_seq_length * input_dim]
     """
     in_seq_length, batch_size, input_dim = input.shape
     input_reshaped = input.permute(1, 0, 2)
