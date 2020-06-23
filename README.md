@@ -21,8 +21,8 @@ The key benefits of ForecastNet are:
 
 ## Usage Notes
 
-- A PyTorch implementation and a TensorFlow implementation are provided. The PyTorch implementation is recommended as
-it is is more complete and more generic.
+- A PyTorch implementation and a TensorFlow implementation are provided. **The PyTorch implementation is recommended as
+it is is more complete and more generic**.
 - Both implementations provide a demonstration using a synthetic dataset. The PyTorch implementation will be easiest to
 adapt to your own dataset.
 - The TensorFlow implementation is written for univariate time-series. The PyTorch implementation accepts multivariate
