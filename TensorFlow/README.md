@@ -1,5 +1,13 @@
 # ForecastNet
 
+**
+NOTE: Please consider using the PyTorch code rather than the TensorFlow code for the following reasons:
+- The Tensorflow code only considers univariate data.
+- The training function in train.py is fairly rudimentary and is specific to a particular data format.
+- The TensorFlow code style is not refined.
+- The code is based on an old version of TensorFlow (version 1.12.0).
+**
+
 TensorFlow implementation of ForecastNet described in the paper entitled 
 "ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting" 
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman.
