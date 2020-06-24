@@ -36,16 +36,26 @@ class ForecastNetConvModel(nn.Module):
         self.out_seq_length = out_seq_length
         self.device = device
 
-        self.hidden_layer1 = nn.ModuleList([nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=2, padding=1, dilation=2) for i in range(out_seq_length)])
-        self.hidden_layer2 = nn.ModuleList([nn.AvgPool1d(kernel_size=2, stride=1, padding=0) for i in range(out_seq_length)])
-        self.hidden_layer3 = nn.ModuleList([nn.Conv1d(in_channels=hidden_dim, out_channels=hidden_dim, kernel_size=2, padding=1, dilation=2) for i in range(out_seq_length)])
-        self.hidden_layer4 = nn.ModuleList([nn.AvgPool1d(kernel_size=2, stride=1, padding=0) for i in range(out_seq_length) for i in range(out_seq_length)])
-        hidden_layer6 = [nn.Linear(hidden_dim * (input_dim * in_seq_length - 2), hidden_dim)]
+        self.conv_layer1 = nn.ModuleList([nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=5, padding=2) for i in range(out_seq_length)])
+        self.conv_layer2 = nn.ModuleList([nn.Conv1d(in_channels=hidden_dim, out_channels=hidden_dim, kernel_size=3, padding=1) for i in range(out_seq_length)])
+        flatten_layer = [nn.Linear(hidden_dim * (input_dim * in_seq_length), hidden_dim)]
         for i in range(out_seq_length - 1):
-            hidden_layer6.append(nn.Linear(hidden_dim * (input_dim * in_seq_length + hidden_dim + output_dim - 2), hidden_dim))
-        self.hidden_layer6 = nn.ModuleList(hidden_layer6)
+            flatten_layer.append(nn.Linear(hidden_dim * (input_dim * in_seq_length + hidden_dim + output_dim), hidden_dim))
+        self.flatten_layer = nn.ModuleList(flatten_layer)
         self.mu_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
         self.sigma_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
+
+        # # Convolutional Layers with Pooling
+        # self.conv_layer1 = nn.ModuleList([nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=5, padding=2) for i in range(out_seq_length)])
+        # self.pool_layer1 = nn.ModuleList([nn.AvgPool1d(kernel_size=2, padding=0) for i in range(out_seq_length)])
+        # self.conv_layer2 = nn.ModuleList([nn.Conv1d(in_channels=hidden_dim, out_channels=hidden_dim, kernel_size=3, padding=1) for i in range(out_seq_length)])
+        # self.pool_layer2 = nn.ModuleList([nn.AvgPool1d(kernel_size=2, padding=0) for i in range(out_seq_length) for i in range(out_seq_length)])
+        # flatten_layer = [nn.Linear(hidden_dim//4 * (input_dim * in_seq_length), hidden_dim)]
+        # for i in range(out_seq_length - 1):
+        #     flatten_layer.append(nn.Linear(hidden_dim * ((input_dim * in_seq_length + hidden_dim + output_dim) // 4), hidden_dim))
+        # self.flatten_layer = nn.ModuleList(flatten_layer)
+        # self.mu_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
+        # self.sigma_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
 
     def forward(self, input, target, is_training=False):
         """
@@ -66,25 +76,25 @@ class ForecastNetConvModel(nn.Module):
         # Propagate through network
         for i in range(self.out_seq_length):
             # Propagate through the cell
-            out = F.relu(self.hidden_layer1[i](next_cell_input))
-            out = self.hidden_layer2[i](out)
-            out = F.relu(self.hidden_layer3[i](out))
-            out = self.hidden_layer4[i](out)
-            out = out.reshape((input.shape[0], -1))
-            out = F.relu(self.hidden_layer6[i](out))
+            hidden = F.relu(self.conv_layer1[i](next_cell_input))
+            # hidden = self.pool_layer1[i](hidden)
+            hidden = F.relu(self.conv_layer2[i](hidden))
+            # hidden = self.pool_layer2[i](hidden)
+            hidden = hidden.reshape((input.shape[0], -1))
+            hidden = F.relu(self.flatten_layer[i](hidden))
 
             # Calculate output
-            mu_ = self.mu_layer[i](out)
-            sigma_ = F.softplus(self.sigma_layer[i](out))
+            mu_ = self.mu_layer[i](hidden)
+            sigma_ = F.softplus(self.sigma_layer[i](hidden))
             mu[i,:,:] = mu_
             sigma[i,:,:] = sigma_
             outputs[i,:,:] = torch.normal(mu_, sigma_).to(self.device)
 
             # Prepare the next input
             if is_training:
-                next_cell_input = torch.cat((input, out, target[i, :, :]), dim=1).unsqueeze(dim=1)
+                next_cell_input = torch.cat((input, hidden, target[i, :, :]), dim=1).unsqueeze(dim=1)
             else:
-                next_cell_input = torch.cat((input, out, outputs[i, :, :]), dim=1).unsqueeze(dim=1)
+                next_cell_input = torch.cat((input, hidden, outputs[i, :, :]), dim=1).unsqueeze(dim=1)
             # Concatenate next input and
         return outputs, mu, sigma
 
@@ -112,15 +122,24 @@ class ForecastNetConvModel2(nn.Module):
         self.out_seq_length = out_seq_length
         self.device = device
 
-        self.hidden_layer1 = nn.ModuleList([nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=2, padding=1, dilation=2) for i in range(out_seq_length)])
-        self.hidden_layer2 = nn.ModuleList([nn.AvgPool1d(kernel_size=2, stride=1, padding=0) for i in range(out_seq_length)])
-        self.hidden_layer3 = nn.ModuleList([nn.Conv1d(in_channels=hidden_dim, out_channels=hidden_dim, kernel_size=2, padding=1, dilation=2) for i in range(out_seq_length)])
-        self.hidden_layer4 = nn.ModuleList([nn.AvgPool1d(kernel_size=2, stride=1, padding=0) for i in range(out_seq_length) for i in range(out_seq_length)])
-        hidden_layer6 = [nn.Linear(hidden_dim * (input_dim * in_seq_length - 2), hidden_dim)]
+        self.conv_layer1 = nn.ModuleList([nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=5, padding=2) for i in range(out_seq_length)])
+        self.conv_layer2 = nn.ModuleList([nn.Conv1d(in_channels=hidden_dim, out_channels=hidden_dim, kernel_size=3, padding=1) for i in range(out_seq_length)])
+        flatten_layer = [nn.Linear(hidden_dim * (input_dim * in_seq_length), hidden_dim)]
         for i in range(out_seq_length - 1):
-            hidden_layer6.append(nn.Linear(hidden_dim * (input_dim * in_seq_length + hidden_dim + output_dim - 2), hidden_dim))
-        self.hidden_layer6 = nn.ModuleList(hidden_layer6)
+            flatten_layer.append(nn.Linear(hidden_dim * (input_dim * in_seq_length + hidden_dim + output_dim), hidden_dim))
+        self.flatten_layer = nn.ModuleList(flatten_layer)
         self.output_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
+
+        # # Convolutional Layers with Pooling
+        # self.conv_layer1 = nn.ModuleList([nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=5, padding=2) for i in range(out_seq_length)])
+        # self.pool_layer1 = nn.ModuleList([nn.AvgPool1d(kernel_size=2, padding=0) for i in range(out_seq_length)])
+        # self.conv_layer2 = nn.ModuleList([nn.Conv1d(in_channels=hidden_dim, out_channels=hidden_dim, kernel_size=3, padding=1) for i in range(out_seq_length)])
+        # self.pool_layer2 = nn.ModuleList([nn.AvgPool1d(kernel_size=2, padding=0) for i in range(out_seq_length) for i in range(out_seq_length)])
+        # flatten_layer = [nn.Linear(hidden_dim//4 * (input_dim * in_seq_length), hidden_dim)]
+        # for i in range(out_seq_length - 1):
+        #     flatten_layer.append(nn.Linear(hidden_dim * ((input_dim * in_seq_length + hidden_dim + output_dim) // 4), hidden_dim))
+        # self.flatten_layer = nn.ModuleList(flatten_layer)
+        # self.output_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
 
     def forward(self, input, target, is_training=False):
         """
@@ -137,12 +156,12 @@ class ForecastNetConvModel2(nn.Module):
         # Propagate through network
         for i in range(self.out_seq_length):
             # Propagate through the cell
-            hidden = F.relu(self.hidden_layer1[i](next_cell_input))
-            hidden = self.hidden_layer2[i](hidden)
-            hidden = F.relu(self.hidden_layer3[i](hidden))
-            hidden = self.hidden_layer4[i](hidden)
+            hidden = F.relu(self.conv_layer1[i](next_cell_input))
+            # hidden = self.pool_layer1[i](hidden)
+            hidden = F.relu(self.conv_layer2[i](hidden))
+            # hidden = self.pool_layer2[i](hidden)
             hidden = hidden.reshape((input.shape[0], -1))
-            hidden = F.relu(self.hidden_layer6[i](hidden))
+            hidden = F.relu(self.flatten_layer[i](hidden))
 
             # Calculate output
             output = self.output_layer[i](hidden)
