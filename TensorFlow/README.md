@@ -5,6 +5,7 @@
 > - The training function in train.py is fairly rudimentary and is specific to a particular data format.
 > - The TensorFlow code style is not refined.
 > - The code is based on an old version of TensorFlow (version 1.12.0).
+> - The TensorFlow code is unlikely to be updated or maintained.
 
 TensorFlow implementation of ForecastNet described in the paper entitled 
 "ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting" 
