@@ -4,7 +4,8 @@ forecastnet_graph provides the mixture density network outputs.
 forecastnet_graph2 provides the linear outputs.
 
 Paper:
-"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
+"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture
+for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman
 Link to the paper: https://arxiv.org/abs/2002.04155
 """
@@ -32,49 +33,91 @@ def forecastnet_graph(X, Y, hidden_dim, out_seq_length, is_training):
     outputs_sigma = []
     outputs = []
     # First hidden layer in the cell
-    hidden = tf.layers.dense(inputs=X, units=hidden_dim, activation=tf.nn.relu,
-                             kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                             bias_initializer=tf.zeros_initializer(), name='hiddenA0')
+    hidden = tf.layers.dense(
+        inputs=X,
+        units=hidden_dim,
+        activation=tf.nn.relu,
+        kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+        bias_initializer=tf.zeros_initializer(),
+        name='hiddenA0',
+    )
     # Second hidden layer in the cell
-    hidden = tf.layers.dense(inputs=hidden, units=hidden_dim, activation=tf.nn.relu,
-                             kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                             bias_initializer=tf.zeros_initializer(), name='hiddenB0')
+    hidden = tf.layers.dense(
+        inputs=hidden,
+        units=hidden_dim,
+        activation=tf.nn.relu,
+        kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+        bias_initializer=tf.zeros_initializer(),
+        name='hiddenB0',
+    )
     # First interleaved output
-    output_mu = tf.layers.dense(inputs=hidden, units=1, activation=None, name='output_mu0')
-    output_sigma = tf.layers.dense(inputs=hidden, units=1, activation=tf.nn.softplus, name='output_sigma0')
-    output = tf.cond(is_training,
-                     lambda: output_mu,
-                     lambda: gaussian_sample(output_mu, output_sigma),
-                     name='output0')
+    output_mu = tf.layers.dense(
+        inputs=hidden, units=1, activation=None, name='output_mu0'
+    )
+    output_sigma = tf.layers.dense(
+        inputs=hidden, units=1, activation=tf.nn.softplus, name='output_sigma0'
+    )
+    output = tf.cond(
+        is_training,
+        lambda: output_mu,
+        lambda: gaussian_sample(output_mu, output_sigma),
+        name='output0',
+    )
     # Add the output to the outputs list
     outputs_mu.append(output_mu)
     outputs_sigma.append(output_sigma)
     outputs.append(output)
     # Repeat for all outputs
     for i in range(1, out_seq_length):
-        # Concatenate the input, the previous cell output and the previous output for the next cell input
+        # Concatenate the input, the previous cell output
+        # and the previous output for the next cell input
         # if training, use the target as the next input, else use predicted output.
-        concat = tf.cond(is_training,
-                         lambda: tf.concat((X, hidden, tf.slice(Y, [0,i-1], [-1,1])), axis=1, name='concat' + str(i)),
-                         lambda: tf.concat((X, hidden, output), axis=1, name='concat' + str(i)))
+        concat = tf.cond(
+            is_training,
+            lambda: tf.concat(
+                (X, hidden, tf.slice(Y, [0, i - 1], [-1, 1])),
+                axis=1,
+                name='concat' + str(i),
+            ),
+            lambda: tf.concat((X, hidden, output), axis=1, name='concat' + str(i)),
+        )
         # # Use the predicted output as the next input
         # concat = tf.concat((X, hidden, output), axis=1, name='concat' + str(i))
 
         # Next cell, first hidden layer
-        hidden = tf.layers.dense(inputs=concat, units=hidden_dim, activation=tf.nn.relu,
-                                 kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                                 bias_initializer=tf.zeros_initializer(), name='hiddenA' + str(i))
+        hidden = tf.layers.dense(
+            inputs=concat,
+            units=hidden_dim,
+            activation=tf.nn.relu,
+            kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+            bias_initializer=tf.zeros_initializer(),
+            name='hiddenA' + str(i),
+        )
         # Next cell, second hidden layer
-        hidden = tf.layers.dense(inputs=hidden, units=hidden_dim, activation=tf.nn.relu,
-                                 kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                                 bias_initializer=tf.zeros_initializer(), name='hiddenB' + str(i))
+        hidden = tf.layers.dense(
+            inputs=hidden,
+            units=hidden_dim,
+            activation=tf.nn.relu,
+            kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+            bias_initializer=tf.zeros_initializer(),
+            name='hiddenB' + str(i),
+        )
         # Next interleaved output
-        output_mu = tf.layers.dense(inputs=hidden, units=1, activation=None, name='output_mu' + str(i))
-        output_sigma = tf.layers.dense(inputs=hidden, units=1, activation=tf.nn.softplus, name='output_sigma' + str(i))
-        output = tf.cond(is_training,
-                         lambda: output_mu,
-                         lambda: gaussian_sample(output_mu, output_sigma),
-                         name='output' + str(i))
+        output_mu = tf.layers.dense(
+            inputs=hidden, units=1, activation=None, name='output_mu' + str(i)
+        )
+        output_sigma = tf.layers.dense(
+            inputs=hidden,
+            units=1,
+            activation=tf.nn.softplus,
+            name='output_sigma' + str(i),
+        )
+        output = tf.cond(
+            is_training,
+            lambda: output_mu,
+            lambda: gaussian_sample(output_mu, output_sigma),
+            name='output' + str(i),
+        )
         # Add next output to the outputs list
         outputs_mu.append(output_mu)
         outputs_sigma.append(output_sigma)
@@ -106,36 +149,65 @@ def forecastnet_graph2(X, Y, hidden_dim, out_seq_length, is_training):
     # Create a empty list for the outputs
     outputs = []
     # First hidden layer in the cell
-    hidden = tf.layers.dense(inputs=X, units=hidden_dim, activation=tf.nn.relu,
-                             kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                             bias_initializer=tf.zeros_initializer(), name='hidden0')
+    hidden = tf.layers.dense(
+        inputs=X,
+        units=hidden_dim,
+        activation=tf.nn.relu,
+        kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+        bias_initializer=tf.zeros_initializer(),
+        name='hidden0',
+    )
     # Second hidden layer in the cell
-    hidden = tf.layers.dense(inputs=hidden, units=hidden_dim, activation=tf.nn.relu,
-                             kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                             bias_initializer=tf.zeros_initializer(), name='hiddenB0')
+    hidden = tf.layers.dense(
+        inputs=hidden,
+        units=hidden_dim,
+        activation=tf.nn.relu,
+        kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+        bias_initializer=tf.zeros_initializer(),
+        name='hiddenB0',
+    )
     # First interleaved output
     output = tf.layers.dense(inputs=hidden, units=1, activation=None, name='tap0')
     # Add the output to the outputs list
     outputs.append(output)
     # Repeat for all outputs
     for i in range(1, out_seq_length):
-        # Concatenate the input, the previous cell output and the previous output for the next cell input
+        # Concatenate the input, the previous cell output
+        # and the previous output for the next cell input
         # if training, use the target as the next input, else use predicted output.
-        concat = tf.cond(is_training,
-                         lambda: tf.concat((X, hidden, tf.slice(Y, [0,i-1], [-1,1])), axis=1, name='concat' + str(i)),
-                         lambda: tf.concat((X, hidden, output), axis=1, name='concat' + str(i)))
+        concat = tf.cond(
+            is_training,
+            lambda: tf.concat(
+                (X, hidden, tf.slice(Y, [0, i - 1], [-1, 1])),
+                axis=1,
+                name='concat' + str(i),
+            ),
+            lambda: tf.concat((X, hidden, output), axis=1, name='concat' + str(i)),
+        )
         # # Use the predicted output as the next input
         # concat = tf.concat((X, hidden, output), axis=1, name='concat' + str(i))
         # Next cell, first hidden layer
-        hidden = tf.layers.dense(inputs=concat, units=hidden_dim, activation=tf.nn.relu,
-                                 kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                                 bias_initializer=tf.zeros_initializer(), name='hidden' + str(i))
+        hidden = tf.layers.dense(
+            inputs=concat,
+            units=hidden_dim,
+            activation=tf.nn.relu,
+            kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+            bias_initializer=tf.zeros_initializer(),
+            name='hidden' + str(i),
+        )
         # Next cell, second hidden layer
-        hidden = tf.layers.dense(inputs=hidden, units=hidden_dim, activation=tf.nn.relu,
-                                 kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
-                                 bias_initializer=tf.zeros_initializer(), name='hiddenB' + str(i))
+        hidden = tf.layers.dense(
+            inputs=hidden,
+            units=hidden_dim,
+            activation=tf.nn.relu,
+            kernel_initializer=tf.contrib.layers.variance_scaling_initializer(),
+            bias_initializer=tf.zeros_initializer(),
+            name='hiddenB' + str(i),
+        )
         # Next interleaved output
-        output = tf.layers.dense(inputs=hidden, units=1, activation=None, name='output' + str(i))
+        output = tf.layers.dense(
+            inputs=hidden, units=1, activation=None, name='output' + str(i)
+        )
         # Add next output to the outputs list
         outputs.append(output)
     # Convert the outputs list to a tensor

@@ -2,13 +2,15 @@
 Helper functions to calculate error metrics.
 
 Paper:
-"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
+"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture
+for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman
 Link to the paper: https://arxiv.org/abs/2002.04155
 """
 
 import numpy as np
 import warnings
+
 
 def calculate_error(Yhat, Y, print_errors=False):
     """
@@ -46,13 +48,12 @@ def calculate_error(Yhat, Y, print_errors=False):
     else:
         raise Warning('Error in dimensions')
 
-
     # Symmetric Mean Absolute Percentage Error (M4 comp)
     smape = []
     for i in range(n_sequences):
         # Compute numerator and denominator
         numerator = np.absolute(Y[:, i] - Yhat[:, i])
-        denominator = (np.absolute(Y[:, i]) + np.absolute(Yhat[:, i]))
+        denominator = np.absolute(Y[:, i]) + np.absolute(Yhat[:, i])
         # Remove any elements with zeros in the denominator
         non_zeros = denominator != 0
         numerator = numerator[non_zeros]
@@ -69,7 +70,7 @@ def calculate_error(Yhat, Y, print_errors=False):
     se = []
     mase = []
     for i in range(n_sequences):
-        numerator = (Y[:, i] - Yhat[:, i])
+        numerator = Y[:, i] - Yhat[:, i]
         denominator = np.sum(np.absolute(Y[1:, i] - Y[0:-1, i]), axis=0)
         # Check if denominator is zero
         if denominator == 0:
@@ -89,4 +90,3 @@ def calculate_error(Yhat, Y, print_errors=False):
         print('Mean absolute scaled error (MASE) = ', mase)
 
     return mase, smape
-

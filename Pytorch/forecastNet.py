@@ -3,7 +3,8 @@ This file contains the class which constructs the TensorFlow graph of ForecastNe
 forecasting.
 
 Paper:
-"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
+"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture
+for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman
 Link to the paper: https://arxiv.org/abs/2002.04155
 """
@@ -15,12 +16,25 @@ from denseForecastNet import ForecastNetDenseModel, ForecastNetDenseModel2
 from convForecastNet import ForecastNetConvModel, ForecastNetConvModel2
 from dataHelpers import format_input
 
+
 class forecastNet:
     """
     Class for ForecastNet.
     """
 
-    def __init__(self, in_seq_length, out_seq_length, input_dim, hidden_dim, output_dim, model_type='dense', batch_size=1, n_epochs=100, learning_rate=0.0001, save_file='./forecastnet.pt'):
+    def __init__(
+        self,
+        in_seq_length,
+        out_seq_length,
+        input_dim,
+        hidden_dim,
+        output_dim,
+        model_type='dense',
+        batch_size=1,
+        n_epochs=100,
+        learning_rate=0.0001,
+        save_file='./forecastnet.pt',
+    ):
         """
         Constructor
         :param in_seq_length: Sequence length of the inputs.
@@ -54,14 +68,41 @@ class forecastNet:
 
         # Create the ForecastNet model
         if model_type == 'dense':
-            self.model = ForecastNetDenseModel(self.input_dim, self.hidden_dim, self.output_dim, self.in_seq_length, self.out_seq_length, self.device)
+            self.model = ForecastNetDenseModel(
+                self.input_dim,
+                self.hidden_dim,
+                self.output_dim,
+                self.in_seq_length,
+                self.out_seq_length,
+                self.device,
+            )
         elif model_type == 'conv':
-            self.model = ForecastNetConvModel(self.input_dim, self.hidden_dim, self.output_dim, self.in_seq_length, self.out_seq_length, self.device)
+            self.model = ForecastNetConvModel(
+                self.input_dim,
+                self.hidden_dim,
+                self.output_dim,
+                self.in_seq_length,
+                self.out_seq_length,
+                self.device,
+            )
         elif model_type == 'dense2':
-            self.model = ForecastNetDenseModel2(self.input_dim, self.hidden_dim, self.output_dim, self.in_seq_length, self.out_seq_length, self.device)
+            self.model = ForecastNetDenseModel2(
+                self.input_dim,
+                self.hidden_dim,
+                self.output_dim,
+                self.in_seq_length,
+                self.out_seq_length,
+                self.device,
+            )
         elif model_type == 'conv2':
-            self.model = ForecastNetConvModel2(self.input_dim, self.hidden_dim, self.output_dim, self.in_seq_length, self.out_seq_length, self.device)
-
+            self.model = ForecastNetConvModel2(
+                self.input_dim,
+                self.hidden_dim,
+                self.output_dim,
+                self.in_seq_length,
+                self.out_seq_length,
+                self.device,
+            )
 
         # # Use multiple GPUS
         # if torch.cuda.device_count() > 1:
@@ -72,11 +113,12 @@ class forecastNet:
         self.model.to(self.device)
 
         # Define the optimizer
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(), lr=self.learning_rate
+        )
 
         # print('Trainable variables = ', np.sum([np.prod(v.get_shape().as_list()) for v in tf.trainable_variables()]))
         # print('')
-
 
     def forecast(self, test_x):
         """
@@ -103,7 +145,9 @@ class forecastNet:
             # Format the inputs
             test_x = format_input(test_x)
             # Dummy output
-            empty_y = torch.empty((self.out_seq_length, test_x.shape[1], self.output_dim))
+            empty_y = torch.empty(
+                (self.out_seq_length, test_x.shape[1], self.output_dim)
+            )
 
             test_x = test_x.to(self.device)
             empty_y = empty_y.to(self.device)

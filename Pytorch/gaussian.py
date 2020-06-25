@@ -2,12 +2,14 @@
 Helper functions relating to the Gaussian Mixture Density Network.
 
 Paper:
-"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
+"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture
+for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman
 Link to the paper: https://arxiv.org/abs/2002.04155
 """
 
 import torch
+
 
 def gaussian_loss(z, mu, sigma):
     """
@@ -26,6 +28,7 @@ def gaussian_loss(z, mu, sigma):
     loglik = torch.mean(n * torch.log(sigma) + 0.5 * ((z - mu) ** 2 / sigma ** 2))
     # loglik = tf.reduce_mean(0.5 * self.T_in * tf.log(tf.square(sigma)) + 0.5 * tf.div(tf.square(z - mu), tf.square(sigma)))
     return loglik
+
 
 def mse_loss(input, target):
     """

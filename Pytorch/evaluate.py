@@ -3,7 +3,8 @@ Code to Evaluate of using the Mean Absolute Scaled Error (MASE) and the Symmetri
 of ForecastNet for a given test set.
 
 Paper:
-"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
+"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture
+for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman
 Link to the paper: https://arxiv.org/abs/2002.04155
 """
@@ -12,6 +13,7 @@ import numpy as np
 import torch
 from dataHelpers import format_input
 from calculateError import calculate_error
+
 
 def evaluate(fcstnet, test_x, test_y, return_lists=False):
     """
@@ -63,7 +65,9 @@ def evaluate(fcstnet, test_x, test_y, return_lists=False):
         smape_list = []
         nrmse_list = []
         for i in range(n_samples):
-            mase, se, smape, nrmse = calculate_error(y_pred[:, i, :].cpu().numpy(), test_y[:, i, :].cpu().numpy())
+            mase, se, smape, nrmse = calculate_error(
+                y_pred[:, i, :].cpu().numpy(), test_y[:, i, :].cpu().numpy()
+            )
             mase_list.append(mase)
             smape_list.append(smape)
             nrmse_list.append(nrmse)
@@ -73,7 +77,10 @@ def evaluate(fcstnet, test_x, test_y, return_lists=False):
         nrmse = np.mean(nrmse_list)
 
     if return_lists:
-        return np.ndarray.flatten(np.array(mase_list)), np.ndarray.flatten(np.array(smape_list)), np.ndarray.flatten(
-            np.array(nrmse_list))
+        return (
+            np.ndarray.flatten(np.array(mase_list)),
+            np.ndarray.flatten(np.array(smape_list)),
+            np.ndarray.flatten(np.array(nrmse_list)),
+        )
     else:
         return mase, smape, nrmse

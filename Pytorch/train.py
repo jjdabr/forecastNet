@@ -1,8 +1,10 @@
 """
-A training function for ForecastNet. This code could be improved by using a PyTorch dataloader
+A training function for ForecastNet.
+This code could be improved by using a PyTorch dataloader.
 
 Paper:
-"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
+"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture
+for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman
 Link to the paper: https://arxiv.org/abs/2002.04155
 """
@@ -19,7 +21,15 @@ plot_train_progress = False
 if plot_train_progress:
     import matplotlib.pyplot as plt
 
-def train(fcstnet, train_x, train_y, validation_x=None, validation_y=None, restore_session=False):
+
+def train(
+    fcstnet,
+    train_x,
+    train_y,
+    validation_x=None,
+    validation_y=None,
+    restore_session=False,
+):
     """
     Train the ForecastNet model on a provided dataset. 
     In the following variable descriptions, the input_seq_length is the length of the input sequence 
@@ -89,11 +99,12 @@ def train(fcstnet, train_x, train_y, validation_x=None, validation_y=None, resto
         # Permutation to randomly sample from the dataset
         permutation = np.random.permutation(np.arange(0, n_samples, fcstnet.batch_size))
 
-        # Loop over the permuted indexes, extract a sample at that index and run it through the model
+        # Loop over the permuted indexes, extract a sample at that index
+        # and run it through the model
         for sample in permutation:
             # Extract a sample at the current permuted index
-            input = train_x[sample:sample + fcstnet.batch_size, :]
-            target = train_y[:, sample:sample + fcstnet.batch_size, :]
+            input = train_x[sample : sample + fcstnet.batch_size, :]
+            target = train_y[:, sample : sample + fcstnet.batch_size, :]
 
             # Send input and output data to the GPU/CPU
             input = input.to(fcstnet.device)
@@ -119,7 +130,10 @@ def train(fcstnet, train_x, train_y, validation_x=None, validation_y=None, resto
             fcstnet.optimizer.step()
 
             if count % 50 == 0:
-                print("Average cost after training batch %i of %i: %f" % (count, permutation.shape[0], loss.item()))
+                print(
+                    "Average cost after training batch %i of %i: %f"
+                    % (count, permutation.shape[0], loss.item())
+                )
             count += 1
         # Find average cost over sequences and batches
         epoch_cost = np.mean(batch_cost)
@@ -129,9 +143,15 @@ def train(fcstnet, train_x, train_y, validation_x=None, validation_y=None, resto
         # Plot an animation of the training progress
         if plot_train_progress:
             plt.cla()
-            plt.plot(np.arange(input.shape[0], input.shape[0] + target.shape[0]), target[:, 0, 0])
+            plt.plot(
+                np.arange(input.shape[0], input.shape[0] + target.shape[0]),
+                target[:, 0, 0],
+            )
             temp = outputs.detach()
-            plt.plot(np.arange(input.shape[0], input.shape[0] + target.shape[0]), temp[:, 0, 0])
+            plt.plot(
+                np.arange(input.shape[0], input.shape[0] + target.shape[0]),
+                temp[:, 0, 0],
+            )
             plt.pause(0.1)
 
         # Validation tests
@@ -141,13 +161,17 @@ def train(fcstnet, train_x, train_y, validation_x=None, validation_y=None, resto
                 # Compute outputs and loss for a mixture density network output
                 if fcstnet.model_type == 'dense' or fcstnet.model_type == 'conv':
                     # Calculate the outputs
-                    y_valid, mu_valid, sigma_valid = fcstnet.model(validation_x, validation_y, is_training=False)
+                    y_valid, mu_valid, sigma_valid = fcstnet.model(
+                        validation_x, validation_y, is_training=False
+                    )
                     # Calculate the loss
                     loss = gaussian_loss(z=validation_y, mu=mu_valid, sigma=sigma_valid)
                 # Compute outputs and loss for a linear output
                 elif fcstnet.model_type == 'dense2' or fcstnet.model_type == 'conv2':
                     # Calculate the outputs
-                    y_valid = fcstnet.model(validation_x, validation_y, is_training=False)
+                    y_valid = fcstnet.model(
+                        validation_x, validation_y, is_training=False
+                    )
                     # Calculate the loss
                     loss = F.mse_loss(input=y_valid, target=validation_y)
                 validation_costs.append(loss.item())
@@ -158,9 +182,13 @@ def train(fcstnet, train_x, train_y, validation_x=None, validation_y=None, resto
         if validation_x is not None:
             print('Average validation cost:     ', validation_costs[-1])
         print("Epoch time:                   %f seconds" % (time.time() - t_start))
-        print("Estimated time to complete:   %.2f minutes, (%.2f seconds)" %
-              ((fcstnet.n_epochs - epoch - 1) * (time.time() - t_start) / 60,
-               (fcstnet.n_epochs - epoch - 1) * (time.time() - t_start)))
+        print(
+            "Estimated time to complete:   %.2f minutes, (%.2f seconds)"
+            % (
+                (fcstnet.n_epochs - epoch - 1) * (time.time() - t_start) / 60,
+                (fcstnet.n_epochs - epoch - 1) * (time.time() - t_start),
+            )
+        )
 
         # Save a model checkpoint
         best_result = False
@@ -171,10 +199,13 @@ def train(fcstnet, train_x, train_y, validation_x=None, validation_y=None, resto
             if validation_costs[-1] == min(validation_costs):
                 best_result = True
         if best_result:
-            torch.save({
-                'model_state_dict': fcstnet.model.state_dict(),
-                'optimizer_state_dict': fcstnet.optimizer.state_dict(),
-            }, fcstnet.save_file)
+            torch.save(
+                {
+                    'model_state_dict': fcstnet.model.state_dict(),
+                    'optimizer_state_dict': fcstnet.optimizer.state_dict(),
+                },
+                fcstnet.save_file,
+            )
             print("Model saved in path: %s" % fcstnet.save_file)
 
     return training_costs, validation_costs

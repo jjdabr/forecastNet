@@ -4,7 +4,8 @@ ForecastNetDenseModel provides the mixture density network outputs.
 ForecastNetDenseModel2 provides the linear outputs.
 
 Paper:
-"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
+"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture
+for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman
 Link to the paper: https://arxiv.org/abs/2002.04155
 """
@@ -13,11 +14,21 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class ForecastNetDenseModel(nn.Module):
     """
     Class for the densely connected hidden cells version of the model
     """
-    def __init__(self, input_dim, hidden_dim, output_dim, in_seq_length, out_seq_length, device):
+
+    def __init__(
+        self,
+        input_dim,
+        hidden_dim,
+        output_dim,
+        in_seq_length,
+        out_seq_length,
+        device
+    ):
         """
         Constructor
         :param input_dim: Dimension of the inputs
@@ -40,11 +51,22 @@ class ForecastNetDenseModel(nn.Module):
         # Initialise layers
         hidden_layer1 = [nn.Linear(input_dim_comb, hidden_dim)]
         for i in range(out_seq_length - 1):
-            hidden_layer1.append(nn.Linear(input_dim_comb + hidden_dim + output_dim, hidden_dim))
+            hidden_layer1.append(
+                nn.Linear(input_dim_comb + hidden_dim + output_dim, hidden_dim)
+            )
         self.hidden_layer1 = nn.ModuleList(hidden_layer1)
-        self.hidden_layer2 = nn.ModuleList([nn.Linear(hidden_dim, hidden_dim) for i in range(out_seq_length)])
-        self.mu_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
-        self.sigma_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
+        self.hidden_layer2 = nn.ModuleList([
+            nn.Linear(hidden_dim, hidden_dim)
+            for i in range(out_seq_length)
+        ])
+        self.mu_layer = nn.ModuleList([
+            nn.Linear(hidden_dim, output_dim)
+            for i in range(out_seq_length)
+        ])
+        self.sigma_layer = nn.ModuleList([
+            nn.Linear(hidden_dim, output_dim)
+            for i in range(out_seq_length)
+        ])
 
     def forward(self, input, target, is_training=False):
         """
@@ -57,9 +79,16 @@ class ForecastNetDenseModel(nn.Module):
         :return: sigma: Outputs of the standard deviation layer [decoder_seq_length, batch_size, input_dim]
         """
         # Initialise outputs
-        outputs = torch.zeros((self.out_seq_length, input.shape[0], self.output_dim)).to(self.device)
-        mu = torch.zeros((self.out_seq_length, input.shape[0], self.output_dim)).to(self.device)
-        sigma = torch.zeros((self.out_seq_length, input.shape[0], self.output_dim)).to(self.device)
+        outputs = torch.zeros(
+            (self.out_seq_length, input.shape[0], self.output_dim)
+        ).to(self.device)
+        mu = torch.zeros(
+            (self.out_seq_length, input.shape[0], self.output_dim)
+        ).to(self.device)
+        sigma = torch.zeros(
+            (self.out_seq_length, input.shape[0], self.output_dim)
+        ).to(self.device)
+
         # First input
         next_cell_input = input
         for i in range(self.out_seq_length):
@@ -69,9 +98,9 @@ class ForecastNetDenseModel(nn.Module):
             # Calculate the output
             mu_ = self.mu_layer[i](out)
             sigma_ = F.softplus(self.sigma_layer[i](out))
-            mu[i,:,:] = mu_
-            sigma[i,:,:] = sigma_
-            outputs[i,:,:] = torch.normal(mu_, sigma_).to(self.device)
+            mu[i, :, :] = mu_
+            sigma[i, :, :] = sigma_
+            outputs[i, :, :] = torch.normal(mu_, sigma_).to(self.device)
             # Prepare the next input
             if is_training:
                 next_cell_input = torch.cat((input, out, target[i, :, :]), dim=1)
@@ -84,7 +113,16 @@ class ForecastNetDenseModel2(nn.Module):
     """
     Class for the densely connected hidden cells version of the model
     """
-    def __init__(self, input_dim, hidden_dim, output_dim, in_seq_length, out_seq_length, device):
+
+    def __init__(
+        self,
+        input_dim,
+        hidden_dim,
+        output_dim,
+        in_seq_length,
+        out_seq_length,
+        device
+    ):
         """
         Constructor
         :param input_dim: Dimension of the inputs
@@ -107,10 +145,18 @@ class ForecastNetDenseModel2(nn.Module):
         # Initialise layers
         hidden_layer1 = [nn.Linear(input_dim_comb, hidden_dim)]
         for i in range(out_seq_length - 1):
-            hidden_layer1.append(nn.Linear(input_dim_comb + hidden_dim + output_dim, hidden_dim))
+            hidden_layer1.append(
+                nn.Linear(input_dim_comb + hidden_dim + output_dim, hidden_dim)
+            )
         self.hidden_layer1 = nn.ModuleList(hidden_layer1)
-        self.hidden_layer2 = nn.ModuleList([nn.Linear(hidden_dim, hidden_dim) for i in range(out_seq_length)])
-        self.output_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
+        self.hidden_layer2 = nn.ModuleList([
+            nn.Linear(hidden_dim, hidden_dim)
+            for i in range(out_seq_length)
+        ])
+        self.output_layer = nn.ModuleList([
+            nn.Linear(hidden_dim, output_dim)
+            for i in range(out_seq_length)
+        ])
 
     def forward(self, input, target, is_training=False):
         """
@@ -121,7 +167,9 @@ class ForecastNetDenseModel2(nn.Module):
         :return: outputs: Forecast outputs in the form [decoder_seq_length, batch_size, input_dim]
         """
         # Initialise outputs
-        outputs = torch.zeros((self.out_seq_length, input.shape[0], self.output_dim)).to(self.device)
+        outputs = torch.zeros(
+            (self.out_seq_length, input.shape[0], self.output_dim)
+        ).to(self.device)
         # First input
         next_cell_input = input
         for i in range(self.out_seq_length):
@@ -130,7 +178,7 @@ class ForecastNetDenseModel2(nn.Module):
             hidden = F.relu(self.hidden_layer2[i](hidden))
             # Calculate the output
             output = self.output_layer[i](hidden)
-            outputs[i,:,:] = output
+            outputs[i, :, :] = output
             # Prepare the next input
             if is_training:
                 next_cell_input = torch.cat((input, hidden, target[i, :, :]), dim=1)

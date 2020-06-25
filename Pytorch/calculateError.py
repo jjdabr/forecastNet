@@ -2,7 +2,8 @@
 Helper functions to calculate error metrics.
 
 Paper:
-"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
+"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture
+for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman
 Link to the paper: https://arxiv.org/abs/2002.04155
 """
@@ -10,14 +11,16 @@ Link to the paper: https://arxiv.org/abs/2002.04155
 import numpy as np
 import warnings
 
+
 def calculate_error(Yhat, Y, print_errors=False):
     """
-    Calculate various errors on a prediction Yhat given the ground truth Y. Both Yhat and Y can be in the following
-    forms:
+    Calculate various errors on a prediction Yhat given the ground truth Y.
+    Both Yhat and Y can be in the following forms:
     * One dimensional arrays
-    * Two dimensional arrays with several sequences along the first dimension (dimension 0).
-    * Three dimensional arrays with several sequences along first dimension (dimension 0) and with the third dimension
-      (dimension 2) being of size 1.
+    * Two dimensional arrays with several sequences along the first dimension
+      (dimension 0).
+    * Three dimensional arrays with several sequences along first dimension
+      (dimension 0) and with the third dimension (dimension 2) being of size 1.
     :param Yhat: Prediction
     :param Y: Ground truth
     :param print_errors: If true the errors are printed.
@@ -50,13 +53,12 @@ def calculate_error(Yhat, Y, print_errors=False):
     else:
         raise Warning('Error in dimensions')
 
-
     # Symmetric Mean Absolute Percentage Error (M4 comp)
     smape = []
     for i in range(n_sequences):
         # Compute numerator and denominator
         numerator = np.absolute(Y[:, i] - Yhat[:, i])
-        denominator = (np.absolute(Y[:, i]) + np.absolute(Yhat[:, i]))
+        denominator = np.absolute(Y[:, i]) + np.absolute(Yhat[:, i])
         # Remove any elements with zeros in the denominator
         non_zeros = denominator != 0
         numerator = numerator[non_zeros]
@@ -73,7 +75,7 @@ def calculate_error(Yhat, Y, print_errors=False):
     se = []
     mase = []
     for i in range(n_sequences):
-        numerator = (Y[:, i] - Yhat[:, i])
+        numerator = Y[:, i] - Yhat[:, i]
         denominator = np.sum(np.absolute(Y[1:, i] - Y[0:-1, i]), axis=0)
         # Check if denominator is zero
         if denominator == 0:
@@ -110,6 +112,7 @@ def calculate_error(Yhat, Y, print_errors=False):
 
     return mase, se, smape, nrmse
 
+
 def calculate_miltidim_error(Yhat, Y, print_errors=False):
     """
     Calculate various errors on a prediction Yhat given the ground truth Y. Both Yhat and Y are 3-dimensional
@@ -134,7 +137,7 @@ def calculate_miltidim_error(Yhat, Y, print_errors=False):
         for i in range(n_batches):
             # Compute numerator and denominator
             numerator = np.absolute(Y[:, i, j] - Yhat[:, i, j])
-            denominator = (np.absolute(Y[:, i, j]) + np.absolute(Yhat[:, i, j]))
+            denominator = np.absolute(Y[:, i, j]) + np.absolute(Yhat[:, i, j])
             # Remove any elements with zeros in the denominator
             non_zeros = denominator != 0
             numerator = numerator[non_zeros]
@@ -155,7 +158,7 @@ def calculate_miltidim_error(Yhat, Y, print_errors=False):
     for j in range(n_inputs):
         mase_seq = []
         for i in range(n_batches):
-            numerator = (Y[:, i, j] - Yhat[:, i, j])
+            numerator = Y[:, i, j] - Yhat[:, i, j]
             denominator = np.sum(np.absolute(Y[1:, i, j] - Y[0:-1, i, j]), axis=0)
             # Check if denominator is zero
             if denominator == 0:
@@ -198,8 +201,8 @@ def calculate_miltidim_error(Yhat, Y, print_errors=False):
 
 
 if __name__ == '__main__':
-    x = np.reshape(np.arange(0, 10 * 2), (10, 2)) + np.random.rand(10,2)
-    y = x + np.random.rand(10,2)
+    x = np.reshape(np.arange(0, 10 * 2), (10, 2)) + np.random.rand(10, 2)
+    y = x + np.random.rand(10, 2)
 
     # x = np.reshape(np.ones((10, 2)), (10, 2))
     # y = np.copy(x)

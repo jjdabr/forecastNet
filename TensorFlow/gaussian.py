@@ -2,12 +2,14 @@
 Helper functions relating to the Gaussian Mixture Density Network.
 
 Paper:
-"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
+"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture
+for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman
 Link to the paper: https://arxiv.org/abs/2002.04155
 """
 
 import tensorflow as tf
+
 
 def gaussian_sample(mu, sigma):
     """
@@ -19,8 +21,9 @@ def gaussian_sample(mu, sigma):
     # gauss_sample = np.random.normal()
     # gauss_sample = tf.random.normal(shape=tf.shape(mu))
     gauss_sample = tf.random_normal(shape=tf.shape(mu), mean=0.0, stddev=1.0)
-    sample =  tf.add(mu, tf.multiply(sigma, gauss_sample))
+    sample = tf.add(mu, tf.multiply(sigma, gauss_sample))
     return sample
+
 
 def log_likelihood(Y, mu, sigma):
     """
@@ -31,6 +34,8 @@ def log_likelihood(Y, mu, sigma):
     :param sigma: Standard deviation of the Gaussian
     :return log_lik: The computed (negative) log-likelihood.
     """
-    log_lik = tf.reduce_mean(tf.log(sigma) + 0.5 * tf.div(tf.square(Y - mu), tf.square(sigma)))
+    log_lik = tf.reduce_mean(
+        tf.log(sigma) + 0.5 * tf.div(tf.square(Y - mu), tf.square(sigma))
+    )
 
     return log_lik

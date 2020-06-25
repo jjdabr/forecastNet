@@ -3,13 +3,15 @@ Functions to generate the synthetic dataset used for the time-invariance test in
 and additional helper functions relating to data formatting.
 
 Paper:
-"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
+"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture
+for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman
 Link to the paper: https://arxiv.org/abs/2002.04155
 """
 
 import numpy as np
 import torch
+
 
 def format_input(input):
     """
@@ -42,8 +44,8 @@ def batch_format(dataset, T_in_seq, T_out_seq, time_major=True):
     # Loop over the indexes, extract a sample at that index and run it through the model
     for t in range(T - T_in_seq - T_out_seq + 1):
         # Extract the training and testing samples at the current permuted index
-        inputs.append(dataset[t: t + T_in_seq, :])
-        targets.append(dataset[t + T_in_seq:t + T_in_seq + T_out_seq, :])
+        inputs.append(dataset[t : t + T_in_seq, :])
+        targets.append(dataset[t + T_in_seq : t + T_in_seq + T_out_seq, :])
 
     # Convert lists to arrays of size [n_samples, T_in, N] and [n_samples, T_out, N]
     inputs = np.array(inputs)
@@ -54,6 +56,7 @@ def batch_format(dataset, T_in_seq, T_out_seq, time_major=True):
         targets = np.transpose(targets, (1, 0, 2))
 
     return inputs, targets
+
 
 def time_series(t, f=0.02):
     """
@@ -70,10 +73,11 @@ def time_series(t, f=0.02):
     # Amplitude modulation component
     amp_mod = 0.5 * np.sin(1 / 6 * 2 * np.pi * f * t) + 0.8
     ys *= amp_mod
-    ys = np.reshape(ys, (T,1))
+    ys = np.reshape(ys, (T, 1))
     return ys
 
-def generate_data(T = 2750, period = 50, n_seqs = 4):
+
+def generate_data(T=2750, period=50, n_seqs=4):
     """
     Generate a dataset using the time_series function. The function generates a dataset
     comprising 'n_seqs' time-series sequences of length T. This dataset is split into
@@ -90,7 +94,7 @@ def generate_data(T = 2750, period = 50, n_seqs = 4):
     """
 
     # Frequency
-    f = 1/period
+    f = 1 / period
     T_in_seq = 2 * period
     T_out_seq = period
 
@@ -121,7 +125,9 @@ def generate_data(T = 2750, period = 50, n_seqs = 4):
     validY_list = []
     for i in range(n_seqs):
         # Convert to batch format
-        inputs, targets = batch_format(dataset[:,[i]], T_in_seq, T_out_seq, time_major=True)
+        inputs, targets = batch_format(
+            dataset[:, [i]], T_in_seq, T_out_seq, time_major=True
+        )
         trainX_list.append(inputs[:, :test_idx, :])
         trainY_list.append(targets[:, :test_idx, :])
         testX_list.append(inputs[:, test_idx:valid_idx, :])

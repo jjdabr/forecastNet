@@ -4,7 +4,8 @@ ForecastNetConvModel provides the mixture density network outputs.
 ForecastNetConvModel2 provides the linear outputs.
 
 Paper:
-"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-Step-Ahead Time-Series Forecasting"
+"ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture
+for Multi-Step-Ahead Time-Series Forecasting"
 by Joel Janek Dabrowski, YiFan Zhang, and Ashfaqur Rahman
 Link to the paper: https://arxiv.org/abs/2002.04155
 """
@@ -13,11 +14,21 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class ForecastNetConvModel(nn.Module):
     """
     Class for the convolutional hidden cell version of the model
     """
-    def __init__(self, input_dim, hidden_dim, output_dim, in_seq_length, out_seq_length, device):
+
+    def __init__(
+        self,
+        input_dim,
+        hidden_dim,
+        output_dim,
+        in_seq_length,
+        out_seq_length,
+        device
+    ):
         """
         Constructor
         :param input_dim: Dimension of the inputs
@@ -36,14 +47,38 @@ class ForecastNetConvModel(nn.Module):
         self.out_seq_length = out_seq_length
         self.device = device
 
-        self.conv_layer1 = nn.ModuleList([nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=5, padding=2) for i in range(out_seq_length)])
-        self.conv_layer2 = nn.ModuleList([nn.Conv1d(in_channels=hidden_dim, out_channels=hidden_dim, kernel_size=3, padding=1) for i in range(out_seq_length)])
-        flatten_layer = [nn.Linear(hidden_dim * (input_dim * in_seq_length), hidden_dim)]
+        self.conv_layer1 = nn.ModuleList([
+            nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=5, padding=2)
+            for i in range(out_seq_length)
+        ])
+        self.conv_layer2 = nn.ModuleList([
+            nn.Conv1d(
+                in_channels=hidden_dim,
+                out_channels=hidden_dim,
+                kernel_size=3,
+                padding=1,
+            )
+            for i in range(out_seq_length)
+        ])
+        flatten_layer = [
+            nn.Linear(hidden_dim * (input_dim * in_seq_length), hidden_dim)
+        ]
         for i in range(out_seq_length - 1):
-            flatten_layer.append(nn.Linear(hidden_dim * (input_dim * in_seq_length + hidden_dim + output_dim), hidden_dim))
+            flatten_layer.append(
+                nn.Linear(
+                    hidden_dim * (input_dim * in_seq_length + hidden_dim + output_dim),
+                    hidden_dim,
+                )
+            )
         self.flatten_layer = nn.ModuleList(flatten_layer)
-        self.mu_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
-        self.sigma_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
+        self.mu_layer = nn.ModuleList([
+            nn.Linear(hidden_dim, output_dim)
+            for i in range(out_seq_length)
+        ])
+        self.sigma_layer = nn.ModuleList([
+            nn.Linear(hidden_dim, output_dim)
+            for i in range(out_seq_length)
+        ])
 
         # # Convolutional Layers with Pooling
         # self.conv_layer1 = nn.ModuleList([nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=5, padding=2) for i in range(out_seq_length)])
@@ -68,9 +103,16 @@ class ForecastNetConvModel(nn.Module):
         :return: sigma: Outputs of the standard deviation layer [decoder_seq_length, batch_size, input_dim]
         """
         # Initialise outputs
-        outputs = torch.zeros((self.out_seq_length, input.shape[0], self.output_dim)).to(self.device)
-        mu = torch.zeros((self.out_seq_length, input.shape[0], self.output_dim)).to(self.device)
-        sigma = torch.zeros((self.out_seq_length, input.shape[0], self.output_dim)).to(self.device)
+        outputs = torch.zeros(
+            (self.out_seq_length, input.shape[0], self.output_dim)
+        ).to(self.device)
+        mu = torch.zeros(
+            (self.out_seq_length, input.shape[0], self.output_dim)
+        ).to(self.device)
+        sigma = torch.zeros(
+            (self.out_seq_length, input.shape[0], self.output_dim)
+        ).to(self.device)
+
         # First input
         next_cell_input = input.unsqueeze(dim=1)
         # Propagate through network
@@ -86,15 +128,19 @@ class ForecastNetConvModel(nn.Module):
             # Calculate output
             mu_ = self.mu_layer[i](hidden)
             sigma_ = F.softplus(self.sigma_layer[i](hidden))
-            mu[i,:,:] = mu_
-            sigma[i,:,:] = sigma_
-            outputs[i,:,:] = torch.normal(mu_, sigma_).to(self.device)
+            mu[i, :, :] = mu_
+            sigma[i, :, :] = sigma_
+            outputs[i, :, :] = torch.normal(mu_, sigma_).to(self.device)
 
             # Prepare the next input
             if is_training:
-                next_cell_input = torch.cat((input, hidden, target[i, :, :]), dim=1).unsqueeze(dim=1)
+                next_cell_input = torch.cat(
+                    (input, hidden, target[i, :, :]), dim=1
+                ).unsqueeze(dim=1)
             else:
-                next_cell_input = torch.cat((input, hidden, outputs[i, :, :]), dim=1).unsqueeze(dim=1)
+                next_cell_input = torch.cat(
+                    (input, hidden, outputs[i, :, :]), dim=1
+                ).unsqueeze(dim=1)
             # Concatenate next input and
         return outputs, mu, sigma
 
@@ -103,7 +149,16 @@ class ForecastNetConvModel2(nn.Module):
     """
     Class for the convolutional hidden cell version of the model
     """
-    def __init__(self, input_dim, hidden_dim, output_dim, in_seq_length, out_seq_length, device):
+
+    def __init__(
+        self,
+        input_dim,
+        hidden_dim,
+        output_dim,
+        in_seq_length,
+        out_seq_length,
+        device
+    ):
         """
         Constructor
         :param input_dim: Dimension of the inputs
@@ -122,13 +177,34 @@ class ForecastNetConvModel2(nn.Module):
         self.out_seq_length = out_seq_length
         self.device = device
 
-        self.conv_layer1 = nn.ModuleList([nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=5, padding=2) for i in range(out_seq_length)])
-        self.conv_layer2 = nn.ModuleList([nn.Conv1d(in_channels=hidden_dim, out_channels=hidden_dim, kernel_size=3, padding=1) for i in range(out_seq_length)])
-        flatten_layer = [nn.Linear(hidden_dim * (input_dim * in_seq_length), hidden_dim)]
+        self.conv_layer1 = nn.ModuleList([
+            nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=5, padding=2)
+            for i in range(out_seq_length)
+        ])
+        self.conv_layer2 = nn.ModuleList([
+            nn.Conv1d(
+                in_channels=hidden_dim,
+                out_channels=hidden_dim,
+                kernel_size=3,
+                padding=1,
+            )
+            for i in range(out_seq_length)
+        ])
+        flatten_layer = [
+            nn.Linear(hidden_dim * (input_dim * in_seq_length), hidden_dim)
+        ]
         for i in range(out_seq_length - 1):
-            flatten_layer.append(nn.Linear(hidden_dim * (input_dim * in_seq_length + hidden_dim + output_dim), hidden_dim))
+            flatten_layer.append(
+                nn.Linear(
+                    hidden_dim * (input_dim * in_seq_length + hidden_dim + output_dim),
+                    hidden_dim,
+                )
+            )
         self.flatten_layer = nn.ModuleList(flatten_layer)
-        self.output_layer = nn.ModuleList([nn.Linear(hidden_dim, output_dim) for i in range(out_seq_length)])
+        self.output_layer = nn.ModuleList([
+            nn.Linear(hidden_dim, output_dim)
+            for i in range(out_seq_length)
+        ])
 
         # # Convolutional Layers with Pooling
         # self.conv_layer1 = nn.ModuleList([nn.Conv1d(in_channels=1, out_channels=hidden_dim, kernel_size=5, padding=2) for i in range(out_seq_length)])
@@ -150,7 +226,9 @@ class ForecastNetConvModel2(nn.Module):
         :return: outputs: Forecast outputs in the form [decoder_seq_length, batch_size, input_dim]
         """
         # Initialise outputs
-        outputs = torch.zeros((self.out_seq_length, input.shape[0], self.output_dim)).to(self.device)
+        outputs = torch.zeros(
+            (self.out_seq_length, input.shape[0], self.output_dim)
+        ).to(self.device)
         # First input
         next_cell_input = input.unsqueeze(dim=1)
         # Propagate through network
@@ -165,12 +243,16 @@ class ForecastNetConvModel2(nn.Module):
 
             # Calculate output
             output = self.output_layer[i](hidden)
-            outputs[i,:,:] = output
+            outputs[i, :, :] = output
 
             # Prepare the next input
             if is_training:
-                next_cell_input = torch.cat((input, hidden, target[i, :, :]), dim=1).unsqueeze(dim=1)
+                next_cell_input = torch.cat(
+                    (input, hidden, target[i, :, :]), dim=1
+                ).unsqueeze(dim=1)
             else:
-                next_cell_input = torch.cat((input, hidden, outputs[i, :, :]), dim=1).unsqueeze(dim=1)
+                next_cell_input = torch.cat(
+                    (input, hidden, outputs[i, :, :]), dim=1
+                ).unsqueeze(dim=1)
             # Concatenate next input and
         return outputs
