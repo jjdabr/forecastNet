@@ -34,3 +34,25 @@ datasets (it has been tested with univariate datasets and datasets with multivar
 ## Citation
 
 Dabrowski J.J., Zhang Y., Rahman A. (2020) ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-step-Ahead Time-Series Forecasting. In: Yang H., Pasupa K., Leung A.CS., Kwok J.T., Chan J.H., King I. (eds) Neural Information Processing. ICONIP 2020. Lecture Notes in Computer Science, vol 12534. Springer, Cham. https://doi.org/10.1007/978-3-030-63836-8_48
+
+```
+@InProceedings{10.1007/978-3-030-63836-8_48,
+    author="Dabrowski, Joel Janek
+    and Zhang, YiFan
+    and Rahman, Ashfaqur",
+    editor="Yang, Haiqin
+    and Pasupa, Kitsuchart
+    and Leung, Andrew Chi-Sing
+    and Kwok, James T.
+    and Chan, Jonathan H.
+    and King, Irwin",
+    title="ForecastNet: A Time-Variant Deep Feed-Forward Neural Network Architecture for Multi-step-Ahead Time-Series Forecasting",
+    booktitle="Neural Information Processing",
+    year="2020",
+    publisher="Springer International Publishing",
+    address="Cham",
+    pages="579--591",
+    abstract="Recurrent and convolutional neural networks are the most common architectures used for time-series forecasting in deep learning literature. Owing to parameter sharing and repeating architecture, these models are time-invariant (shift-invariant in the spatial domain). We demonstrate how time-invariance in such models can reduce the capacity to model time-varying dynamics in the data. We propose ForecastNet which uses a deep feed-forward architecture and interleaved outputs to provide a time-variant model. ForecastNet is demonstrated to model time varying dynamics in data and outperform statistical and deep learning benchmark models on several seasonal time-series datasets.",
+    isbn="978-3-030-63836-8"
+}
+```
